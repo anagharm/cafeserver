@@ -8,6 +8,7 @@ const userSchema = mongoose.Schema({
 	emails		: { type : String , required : true , unique : true},
 	verified	: { type : Boolean },
 	role 		: { type : String },
+	roleId 		: { type : mongoose.Schema.Types.ObjectId },
 	otp 		: { type : Number },
 	password 	:{
 					bcrypt:String

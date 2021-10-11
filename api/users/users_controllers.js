@@ -1,7 +1,7 @@
 const mongoose          = require("mongoose");
 const bcrypt            = require("bcrypt");
 const jwt               = require("jsonwebtoken");
-const globalVariable    = require("../../nodemon.js");
+const globalVariable    = require("../../nodemonconfig.js");
 const User              = require('./users_model');
 const Profile           = require("../profiles/profiles_model.js");
 var axios               = require('axios');
@@ -155,6 +155,126 @@ exports.signin = (req,res,next)=>{
 										response 		: ""
 									})
 			}			
+		})
+		.catch(err =>{
+			console.log(err);
+			res.status(500).json({
+				error: err
+			});
+		});
+};
+
+exports.createuser = (req,res,next)=>{
+	const password = "Welcome2022";
+	if(req.body.mobileNum && password){
+		User.find({userName:req.body.mobileNum})
+			.exec()
+			.then(user =>{
+				if(user.length >= 1){
+					return res.status(409).json({
+						message: 'Mobile Number already registered.'
+					});
+				}else{
+					axios({
+							method  : 'get',
+							url 	: globalVariable.APIURL + '/api/role/get/roledetails/'+req.body.roleId
+						})
+						.then(role =>{
+							bcrypt.hash(password,10,(err,hash)=>{
+								if(err){
+									return res.status(500).json({
+										error:err
+									});
+								}else{
+									const user = new User({
+													_id         : new mongoose.Types.ObjectId(),
+													createdAt	: new Date,
+													password    : {
+																	bcrypt:hash
+																},
+													userName	: req.body.mobileNum,
+													emails      : req.body.emailId,
+													verified    : true,
+													role 		: role.data.response.role,
+													roleId 		: req.body.roleId,
+									});	
+									user.save()
+										.then(result =>{
+											const profile = new Profile({
+												_id         : new mongoose.Types.ObjectId(),
+												userName	: req.body.mobileNum,
+												mobileNum	: req.body.mobileNum,
+												emails      : req.body.emailId,
+												name        : req.body.name,
+												dob 		: req.body.dob,
+												gender 		: req.body.gender,
+												dom 		: req.body.dom,
+												verified    : true,
+												role 		: role.data.response.role, 
+												roleId 		: req.body.roleId,
+											});
+											profile.save()
+													.then(profile => {
+														res.status(200).json({
+															responseCode 	: 0,
+															responseMsg		: 'User created',
+															response 		: profile._id,
+														})
+													})
+													.catch(err =>{
+														console.log(err);
+														res.status(500).json({
+															error: err
+														});
+													});
+										})
+										.catch(err =>{
+											console.log(err);
+											res.status(500).json({
+												error: err
+											});
+										});
+								}			
+							});
+						})
+						.catch(err =>{
+							console.log(err);
+							res.status(500).json({
+								error: err
+							});
+						});					
+					
+				}
+			})
+			.catch(err =>{
+				console.log(err);
+				res.status(500).json({
+					error: err
+				});
+			});
+	}else{
+		res.status(200).json({message:"Mobile Number and password are mandatory"});
+	}
+};
+
+exports.updateUser = (req,res,next) =>{
+	User.updateOne(
+						{ userName : req.body.userName },
+						{
+							$set : {
+										userName	: req.body.mobileNum,
+										emails      : req.body.emailId,
+										role 		: req.body.role,
+										roleId 		: req.body.roleId,
+									}
+						}
+		)
+		.then(user => {
+			res.status(200).json({
+				responseCode 	: 0,
+				responseMsg		: 'User updated',
+				response 		: "",
+			})
 		})
 		.catch(err =>{
 			console.log(err);

@@ -3,7 +3,7 @@ const app 				= express();
 const morgan 			= require('morgan');// morgan call next function if problem occure
 const bodyParser 		= require('body-parser');// this package use to formate json data 
 const mongoose 			= require ('mongoose');
-const globalVariable 	= require("./nodemon.js");
+const globalVariable 	= require("./nodemonconfig.js");
 var path 				= require('path');
 var cookieParser 		= require('cookie-parser');
 var cors 				= require('cors');
@@ -11,11 +11,12 @@ var cors 				= require('cors');
 const dbname 			= globalVariable.dbname;
 global.JWT_KEY 			= globalVariable.JWT_KEY;
 
-
 /*Include all the Routes Used*/
 const usersRoutes 				= require("./api/users/users_routes.js");
 const profileRoutes 			= require("./api/profiles/profiles_routes.js");
 const roleRoutes 				= require("./api/roles/roles_routes.js");
+const menuRoutes 				= require("./api/menus/menus_routes.js");
+const discountRoutes 			= require("./api/discounts/discounts_routes.js");
 
 // mongoose.connect('mongodb://localhost/'+dbname,{
 mongoose.connect('mongodb://localhost/'+dbname,{
@@ -35,6 +36,8 @@ app.use(cors());
 app.use("/api/user",usersRoutes);
 app.use("/api/profile",profileRoutes);
 app.use("/api/role",roleRoutes);
+app.use("/api/menu",menuRoutes);
+app.use("/api/discount",discountRoutes);
 
 // handle all other request which not found 
 app.use((req, res, next) => {

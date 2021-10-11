@@ -8,6 +8,7 @@ const profileSchema = mongoose.Schema({
 	emails		: { type : String , required : true , unique : true },
 	mobileNum  	: { type : String },
 	role 		: { type : String },
+	roleId 		: { type : mongoose.Schema.Types.ObjectId },
 	dob 		: { type : Date },
 	gender 		: { type : String },
 	dom 		: { type : Date },

@@ -1,26 +1,30 @@
 const mongoose          = require("mongoose");
-const Role              = require('./roles_model');
+const Menu              = require('./menus_model');
 const ObjectID          = require('mongodb').ObjectID;
-exports.addrole = (req,res,next)=> {
-    Role.find({role : req.body.role})
-        .then(role =>{
-            if(role.length > 0){
+
+exports.addmenu = (req,res,next)=> {
+    Menu.find({menu : req.body.menu})
+        .then(menu =>{
+            if(menu.length > 0){
                 res.status(200).json({
                                         responseCode 	: 1,
-                                        responseMsg		: 'Role already Exists',
+                                        responseMsg		: 'Menu already Exists',
                                         response 		: "",
                                     })
             }else{
-                const role = new Role({
+                const menu = new Menu({
                     _id         : new mongoose.Types.ObjectId(),
-                    role        : req.body.role,
+                    menu        : req.body.menu,
+                    description	: req.body.description,
+                    price  		: req.body.price,
+                    available   : req.body.available,
                 });
-                role.save()
+                menu.save()
                     .then(data=>{
                         res.status(200).json({
                                                 responseCode 	: 0,
-                                                responseMsg		: 'Role Added',
-                                                response 		: data,
+                                                responseMsg		: 'Menu Added',
+                                                response 		: data._id,
                                             })
                     })
                     .catch(err =>{
@@ -40,24 +44,25 @@ exports.addrole = (req,res,next)=> {
         });
 }
 
-exports.patchrole = (req,res,next)=>{
-    console.log("data role",req.body)
-    Role.updateOne(
+exports.patchmenu = (req,res,next)=>{
+    Menu.updateOne(
                         {
                             _id : mongoose.Types.ObjectId(req.body.id)
                         },
                         {
                             $set : {
-                                role : req.body.role
+                                menu        : req.body.menu,
+                                description	: req.body.description,
+                                price  		: req.body.price,
+                                available   : req.body.available,
                             }
                         }
         )
         .then(data=>{
-            console.log("data ",data)
             res.status(200).json({
                                     responseCode 	: 0,
-                                    responseMsg		: 'Role Updated',
-                                    response 		: "",
+                                    responseMsg		: 'Menu Updated',
+                                    response 		: req.body.id,
                                 })
         })
         .catch(err =>{
@@ -68,12 +73,22 @@ exports.patchrole = (req,res,next)=>{
         });
 }
 
-exports.listrole = (req,res,next)=>{
-    Role.find()
+exports.listmenu = (req,res,next)=>{
+    Menu.aggregate([
+                        {
+                            $project : {
+                                            menu        : { $concat : ["$menu","-",{$toString:"$_id"}]},
+                                            description	: 1,
+                                            price  		: 1,
+                                            available   : 1,
+
+                                        }
+                        }
+        ])
         .then(data=>{
             res.status(200).json({
                                     responseCode 	: 0,
-                                    responseMsg		: 'Role List',
+                                    responseMsg		: 'Menu List',
                                     response 		: data,
                                 })
         })
@@ -85,12 +100,13 @@ exports.listrole = (req,res,next)=>{
         });
 }
 
-exports.roledetails = (req,res,next)=>{
-    Role.findOne({_id : mongoose.Types.ObjectId(req.params.id)})
+exports.menudetails = (req,res,next)=>{
+    console.log("menu Id ",req.params.id)
+    Menu.findOne({_id : mongoose.Types.ObjectId(req.params.id)})
         .then(data=>{
             res.status(200).json({
                                     responseCode 	: 0,
-                                    responseMsg		: 'Role Details',
+                                    responseMsg		: 'Menu Details',
                                     response 		: data,
                                 })
         })
@@ -102,12 +118,12 @@ exports.roledetails = (req,res,next)=>{
         });  
 }
 
-exports.deleterole = (req,res,next)=>{
-    Role.deleteOne({_id:mongoose.Types.ObjectId(req.body.id)})
+exports.deletemenu = (req,res,next)=>{
+    Menu.deleteOne({_id:mongoose.Types.ObjectId(req.body.id)})
         .then(data=>{
             res.status(200).json({
                                     responseCode 	: 0,
-                                    responseMsg		: 'Role Deleted',
+                                    responseMsg		: 'Menu Deleted',
                                     response 		: "",
                                 })
         })
@@ -119,11 +135,11 @@ exports.deleterole = (req,res,next)=>{
         });
 }
 
-exports.listrolekeyvalue = (req,res,next)=>{
-    Role.aggregate([
+exports.listmenukeyvalue = (req,res,next)=>{
+    Menu.aggregate([
                         {
                             $project : {
-                                            "key"   : "$role",
+                                            "key"   : "$menu",
                                             "value" : "$_id"
                                        }
                         }
@@ -132,7 +148,7 @@ exports.listrolekeyvalue = (req,res,next)=>{
             data.unshift({"key":"Select","value":"-"})
             res.status(200).json({
                                     responseCode 	: 0,
-                                    responseMsg		: 'Role List',
+                                    responseMsg		: 'Menu List',
                                     response 		: data,
                                 })
         })
